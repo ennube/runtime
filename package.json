@@ -1,0 +1,19 @@
+{
+  "name": "@ennube/runtime",
+  "version": "0.1.0-alpha",
+  "description": "Ennube runtime framework",
+  "main": "build/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ennube/runtime.git"
+  },
+  "author": "J.David Luque <jdavidls@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ennube/runtime/issues"
+  },
+  "homepage": "https://github.com/ennube/runtime#readme"
+}
