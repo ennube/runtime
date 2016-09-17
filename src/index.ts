@@ -1,3 +1,5 @@
-import * as _http from './http';
+export * from './service';
+export {http} from './http';
 
-export const http = _http;
+import * as _handler from './handler';
+export const handler = _handler;

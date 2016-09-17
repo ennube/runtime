@@ -1,10 +1,29 @@
 {
     "compilerOptions": {
-        "module": "commonjs",
         "target": "es5",
+        "module": "commonjs",
+        "moduleResolution": "node",
+        "isolatedModules": false,
+        "jsx": "react",
+        "experimentalDecorators": true,
+        "emitDecoratorMetadata": true,
+        "declaration": true,
         "noImplicitAny": false,
-        "sourceMap": false,
-        "rootDir": "src/",
-        "outDir": "build/"
-    }
+        "noImplicitUseStrict": false,
+        "removeComments": true,
+        "noLib": false,
+        "preserveConstEnums": true,
+        "suppressImplicitAnyIndexErrors": true,
+        "sourceMap": true,
+        "outDir": "build/",
+        "rootDir": "src/"
+    },
+    "typeRoots": [
+      "./node_modules/@types"
+    ],
+    "types": [
+        "node"
+    ],
+    "compileOnSave": false,
+    "buildOnSave": false
 }

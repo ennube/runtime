@@ -1,23 +1,58 @@
 "use strict";
-function http(_a) {
-    return function (handler) {
-        return function (event, context, cb) {
-            var req = new Request();
-            var res = new Response();
-            return handler(req, res);
+var service_1 = require('./service');
+var http;
+(function (http) {
+    http.allGateways = {};
+    var Gateway = (function () {
+        function Gateway() {
+            this.endpoints = {};
+        }
+        return Gateway;
+    }());
+    http.Gateway = Gateway;
+    var Endpoint = (function () {
+        function Endpoint() {
+        }
+        return Endpoint;
+    }());
+    http.Endpoint = Endpoint;
+    function endpointDecorator(gatewayId, url, method) {
+        return function (servicePrototype, handlerMethod, descriptor) {
+            if (typeof servicePrototype == 'function')
+                throw new Error((servicePrototype.name + "." + handlerMethod + "():") +
+                    "static handlers are not permitted");
+            var gateway = http.allGateways[gatewayId];
+            if (gateway === undefined)
+                gateway = http.allGateways[gatewayId] = new Gateway();
+            var methods = gateway.endpoints[url];
+            if (methods === undefined)
+                methods = gateway.endpoints[url] = {};
+            var endpoint = methods[method];
+            if (endpoint === undefined)
+                endpoint = methods[method] = new Endpoint();
+            var service = service_1.getServiceRecord(servicePrototype.constructor);
+            endpoint.serviceRecord = service;
+            endpoint.handlerMethod = handlerMethod;
         };
-    };
-}
-exports.http = http;
-var Request = (function () {
-    function Request() {
     }
-    return Request;
-}());
-exports.Request = Request;
-var Response = (function () {
-    function Response() {
+    function GET(gatewayId, url) {
+        return endpointDecorator(gatewayId, url, 'get');
     }
-    return Response;
-}());
-exports.Response = Response;
+    http.GET = GET;
+    function POST(gatewayId, url) {
+        return endpointDecorator(gatewayId, url, 'post');
+    }
+    http.POST = POST;
+    function PUT(gatewayId, url) {
+        return endpointDecorator(gatewayId, url, 'put');
+    }
+    http.PUT = PUT;
+    function DELETE(gatewayId, url) {
+        return endpointDecorator(gatewayId, url, 'delete');
+    }
+    http.DELETE = DELETE;
+    function authorizer() {
+    }
+    http.authorizer = authorizer;
+})(http = exports.http || (exports.http = {}));
+//# sourceMappingURL=http.js.map

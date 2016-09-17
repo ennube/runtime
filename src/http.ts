@@ -1,34 +1,69 @@
- /*
-    exports as http handler decorator,
-    wrap the handler for http usage,
-    provides req, res
- */
+import {getServiceRecord, ServiceRecord} from './service';
 
-export function http({
-//    paths: { [key:string]: string[] }
-}) {
+export namespace http {
 
-    return (handler) => { // decorator
+    export const allGateways: {
+        [gatewayId:string]: Gateway
+    } = { };
 
-        return (event, context, cb) => { // wrapper
+    export class Gateway {
+        endpoints: {
+            [url:string]: {
+                [method:string]: Endpoint
+            }
+        } = { }
+    }
 
-            let req = new Request();
-            let res = new Response();
+    export class Endpoint {
+        serviceRecord: ServiceRecord;
+        handlerMethod: string;
+//        isStatic: Boolean;
+    }
 
-            return handler(req, res) // passtrought
+    function endpointDecorator(gatewayId: string, url: string, method:string) {
 
+        return (servicePrototype: any, handlerMethod: string, descriptor: PropertyDescriptor) => {
+            if(typeof servicePrototype == 'function')
+                throw new Error(`${servicePrototype.name}.${handlerMethod}():` +
+                                `static handlers are not permitted`);
+
+            let gateway = allGateways[gatewayId];
+            if( gateway === undefined)
+                gateway = allGateways[gatewayId] = new Gateway();
+
+            let methods = gateway.endpoints[url];
+            if( methods === undefined)
+                methods = gateway.endpoints[url] = {}
+
+            let endpoint = methods[method]
+            if( endpoint === undefined)
+                endpoint = methods[method] = new Endpoint();
+
+            let service = getServiceRecord(servicePrototype.constructor);
+
+//            endpoint.isStatic = false;
+            endpoint.serviceRecord = service;
+            endpoint.handlerMethod = handlerMethod;
         };
-    };
+    }
 
-}
+    export function GET(gatewayId: string, url: string) {
+        return endpointDecorator(gatewayId, url, 'get');
+    }
 
+    export function POST(gatewayId: string, url: string) {
+        return endpointDecorator(gatewayId, url, 'post');
+    }
 
+    export function PUT(gatewayId: string, url: string) {
+        return endpointDecorator(gatewayId, url, 'put');
+    }
 
-export class Request
-{
+    export function DELETE(gatewayId: string, url: string) {
+        return endpointDecorator(gatewayId, url, 'delete');
+    }
 
-}
-
-export class Response {
-
+    export function authorizer() {
+        // puede ser custom o iam...
+    }
 }

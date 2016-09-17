@@ -1,8 +1,9 @@
 {
   "name": "@ennube/runtime",
-  "version": "0.1.0-alpha",
+  "version": "0.0.1-alpha",
   "description": "Ennube runtime framework",
   "main": "build/index.js",
+  "types": "build/index.d.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
