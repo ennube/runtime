@@ -21,6 +21,7 @@ var http;
             if (typeof servicePrototype == 'function')
                 throw new Error((servicePrototype.name + "." + handlerMethod + "():") +
                     "static handlers are not permitted");
+            var serviceClass = servicePrototype.constructor;
             var gateway = http.allGateways[gatewayId];
             if (gateway === undefined)
                 gateway = http.allGateways[gatewayId] = new Gateway();
@@ -30,8 +31,8 @@ var http;
             var endpoint = methods[method];
             if (endpoint === undefined)
                 endpoint = methods[method] = new Endpoint();
-            var service = service_1.getServiceRecord(servicePrototype.constructor);
-            endpoint.serviceRecord = service;
+            service_1.registerServiceClass(serviceClass);
+            endpoint.serviceClass = serviceClass;
             endpoint.handlerMethod = handlerMethod;
         };
     }

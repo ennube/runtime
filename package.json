@@ -16,5 +16,11 @@
   "bugs": {
     "url": "https://github.com/ennube/runtime/issues"
   },
-  "homepage": "https://github.com/ennube/runtime#readme"
+  "homepage": "https://github.com/ennube/runtime#readme",
+  "dependencies": {
+    "core-js": "^2.4.1"
+  },
+  "devDependencies": {
+    "@types/core-js": "^0.9.32"
+  }
 }

@@ -1,4 +1,4 @@
-import {getServiceRecord, ServiceRecord} from './service';
+import {registerServiceClass, ServiceClass} from './service';
 
 export namespace http {
 
@@ -15,7 +15,7 @@ export namespace http {
     }
 
     export class Endpoint {
-        serviceRecord: ServiceRecord;
+        serviceClass: ServiceClass;
         handlerMethod: string;
 //        isStatic: Boolean;
     }
@@ -26,6 +26,8 @@ export namespace http {
             if(typeof servicePrototype == 'function')
                 throw new Error(`${servicePrototype.name}.${handlerMethod}():` +
                                 `static handlers are not permitted`);
+
+            let serviceClass = servicePrototype.constructor;
 
             let gateway = allGateways[gatewayId];
             if( gateway === undefined)
@@ -39,11 +41,10 @@ export namespace http {
             if( endpoint === undefined)
                 endpoint = methods[method] = new Endpoint();
 
-            let service = getServiceRecord(servicePrototype.constructor);
-
-//            endpoint.isStatic = false;
-            endpoint.serviceRecord = service;
+            registerServiceClass(serviceClass);
+            endpoint.serviceClass = serviceClass;
             endpoint.handlerMethod = handlerMethod;
+//            endpoint.isStatic = false;
         };
     }
 

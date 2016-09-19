@@ -1,4 +1,4 @@
-import { ServiceRecord } from './service';
+import { ServiceClass } from './service';
 export declare namespace http {
     const allGateways: {
         [gatewayId: string]: Gateway;
@@ -11,7 +11,7 @@ export declare namespace http {
         };
     }
     class Endpoint {
-        serviceRecord: ServiceRecord;
+        serviceClass: ServiceClass;
         handlerMethod: string;
     }
     function GET(gatewayId: string, url: string): (servicePrototype: any, handlerMethod: string, descriptor: PropertyDescriptor) => void;

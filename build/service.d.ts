@@ -1,3 +1,4 @@
+/// <reference types="core-js" />
 export interface ServiceClass extends Function {
     new (): Service;
     name: string;
@@ -10,14 +11,4 @@ export declare const serviceClasses: {
 export declare const serviceInstances: {
     [serviceId: string]: Service;
 };
-export declare class ServiceRecord {
-    serviceClass: ServiceClass;
-    constructor(serviceClass: ServiceClass);
-}
-export declare const allServiceRecords: {
-    [serviceId: string]: ServiceRecord;
-};
-export declare const instances: {
-    [serviceId: string]: Service;
-};
-export declare function getServiceRecord(serviceClass: ServiceClass): ServiceRecord;
+export declare function registerServiceClass(serviceClass: ServiceClass): void;
