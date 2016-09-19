@@ -1,5 +1,7 @@
 
-export type Type = Function; // Type is a constructor function
+export interface Type extends Function {
+
+}
 
 export function typeOf(value: any): Type {
     if(value === undefined)
@@ -9,17 +11,12 @@ export function typeOf(value: any): Type {
         return null;
 
     return Object.getPrototypeOf(value).constructor;
+
 }
 
-/*
 export interface Class<T> extends Type {
-    new(): Instance<T>;
+    new(...args: any[]): T;
 }
-
-export interface Instance<T> extends Object {
-
-}
-*/
 
 
 /*
@@ -30,7 +27,4 @@ function getBaseClass(type: Class): Type {
 function isSubType(subType: Function, baseType: Function) {
     return subType.prototype instanceof baseType;
 }
-
-
-function foo(){}
 */

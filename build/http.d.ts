@@ -1,4 +1,4 @@
-import { ServiceClass } from './service';
+/// <reference types="core-js" />
 export declare namespace http {
     const allGateways: {
         [gatewayId: string]: Gateway;
@@ -11,8 +11,8 @@ export declare namespace http {
         };
     }
     class Endpoint {
-        serviceClass: ServiceClass;
-        handlerMethod: string;
+        service: Object;
+        method: string;
     }
     function GET(gatewayId: string, url: string): (servicePrototype: any, handlerMethod: string, descriptor: PropertyDescriptor) => void;
     function POST(gatewayId: string, url: string): (servicePrototype: any, handlerMethod: string, descriptor: PropertyDescriptor) => void;

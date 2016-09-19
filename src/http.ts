@@ -1,4 +1,4 @@
-import {registerServiceClass, ServiceClass} from './service';
+import {ensureService, ServiceClass} from './service';
 
 export namespace http {
 
@@ -15,8 +15,9 @@ export namespace http {
     }
 
     export class Endpoint {
-        serviceClass: ServiceClass;
-        handlerMethod: string;
+        service: Object;
+        method: string;
+//        serviceClass: ServiceClass;
 //        isStatic: Boolean;
     }
 
@@ -26,6 +27,13 @@ export namespace http {
             if(typeof servicePrototype == 'function')
                 throw new Error(`${servicePrototype.name}.${handlerMethod}():` +
                                 `static handlers are not permitted`);
+
+            // este decorador tambien puede ser usado
+            // con un string MOCK ruta a una plantilla
+            // o un objeto que especificará un reenvio http
+            // debe de contemplarse tambien los allowed content/types...
+            // debe de poderse indicar un middleware en funcion del content type?
+            // 
 
             let serviceClass = servicePrototype.constructor;
 
@@ -41,9 +49,10 @@ export namespace http {
             if( endpoint === undefined)
                 endpoint = methods[method] = new Endpoint();
 
-            registerServiceClass(serviceClass);
-            endpoint.serviceClass = serviceClass;
-            endpoint.handlerMethod = handlerMethod;
+            endpoint.service = ensureService(serviceClass);
+//          TODO: via  ensureServiceMethod(handlerMethod):
+            endpoint.method = handlerMethod;
+//            endpoint.serviceClass = serviceClass;
 //            endpoint.isStatic = false;
         };
     }

@@ -1,3 +1,7 @@
 /// <reference types="core-js" />
-export declare type Type = Function;
+export interface Type extends Function {
+}
 export declare function typeOf(value: any): Type;
+export interface Class<T> extends Type {
+    new (...args: any[]): T;
+}

@@ -6,7 +6,7 @@
         "isolatedModules": false,
         "jsx": "react",
         "experimentalDecorators": true,
-        "emitDecoratorMetadata": true,
+        "emitDecoratorMetadata": false,
         "declaration": true,
         "noImplicitAny": false,
         "noImplicitUseStrict": false,

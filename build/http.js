@@ -31,9 +31,8 @@ var http;
             var endpoint = methods[method];
             if (endpoint === undefined)
                 endpoint = methods[method] = new Endpoint();
-            service_1.registerServiceClass(serviceClass);
-            endpoint.serviceClass = serviceClass;
-            endpoint.handlerMethod = handlerMethod;
+            endpoint.service = service_1.ensureService(serviceClass);
+            endpoint.method = handlerMethod;
         };
     }
     function GET(gatewayId, url) {
