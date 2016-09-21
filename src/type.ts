@@ -14,6 +14,17 @@ export function typeOf(value: any): Type {
 
 }
 
+export function instanceOf(value:any, type:Type) {
+    if(value === undefined)
+        return type === undefined;
+
+    if(value === null)
+        return type === null;
+
+    return Object.getPrototypeOf(value).constructor === type;
+}
+
+
 export interface Class<T> extends Type {
     new(...args: any[]): T;
 }

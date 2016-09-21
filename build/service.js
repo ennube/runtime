@@ -1,23 +1,48 @@
 "use strict";
-exports.allServices = {};
-exports.serviceInstances = {};
-function ensureService(serviceClass) {
-    var serviceId = serviceClass.name;
-    var service = exports.allServices[serviceId];
-    if (service === undefined)
-        service = exports.allServices[serviceId] = {
-            serviceClass: serviceClass,
-            memoryLimit: 256,
-            timeLimit: 6,
-        };
-    return service;
-}
-exports.ensureService = ensureService;
-function serviceDecorator(params) {
+var type_1 = require('./type');
+exports.allServiceDescriptors = {};
+var ServiceDescriptor = (function () {
+    function ServiceDescriptor(serviceClass) {
+        this.serviceClass = serviceClass;
+        this.memoryLimit = 512;
+        this.timeLimit = 6;
+        this.handlers = {};
+        exports.allServiceDescriptors[serviceClass.name] = this;
+    }
+    ServiceDescriptor.get = function (serviceClass) {
+        var serviceDescriptor = exports.allServiceDescriptors[serviceClass.name];
+        if (serviceDescriptor === undefined)
+            serviceDescriptor = new this(serviceClass);
+        else if (serviceDescriptor.serviceClass !== serviceClass)
+            throw new Error("Multiple service classes with same name " +
+                ("" + serviceClass.name));
+        return serviceDescriptor;
+    };
+    return ServiceDescriptor;
+}());
+exports.ServiceDescriptor = ServiceDescriptor;
+var HandlerDescriptor = (function () {
+    function HandlerDescriptor(params) {
+        Object.assign(this, params);
+        this.serviceDescriptor.handlers[this.name] = this;
+    }
+    return HandlerDescriptor;
+}());
+exports.HandlerDescriptor = HandlerDescriptor;
+exports.allServiceInstances = {};
+var Service = (function () {
+    function Service() {
+        exports.allServiceInstances[type_1.typeOf(this).name] = this;
+    }
+    Service.get = function (serviceClass) {
+    };
+    return Service;
+}());
+exports.Service = Service;
+function service(params) {
     return function (serviceClass) {
-        var service = ensureService(serviceClass);
-        Object.assign(service, params);
+        Object.assign(ServiceDescriptor.get(serviceClass), params);
     };
 }
-exports.serviceDecorator = serviceDecorator;
+exports.service = service;
 //# sourceMappingURL=service.js.map

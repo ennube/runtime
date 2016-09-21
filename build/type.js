@@ -7,4 +7,12 @@ function typeOf(value) {
     return Object.getPrototypeOf(value).constructor;
 }
 exports.typeOf = typeOf;
+function instanceOf(value, type) {
+    if (value === undefined)
+        return type === undefined;
+    if (value === null)
+        return type === null;
+    return Object.getPrototypeOf(value).constructor === type;
+}
+exports.instanceOf = instanceOf;
 //# sourceMappingURL=type.js.map

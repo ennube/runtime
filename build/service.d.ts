@@ -1,25 +1,39 @@
 /// <reference types="core-js" />
-import { Class } from './type';
-export interface ServiceClass extends Class<Service> {
+export interface ServiceClass extends Function {
+    new (): Service;
 }
-export interface Service extends Object {
+export interface Service {
 }
-export declare const allServices: {
-    [serviceId: string]: {
-        serviceClass: ServiceClass;
-        memoryLimit: Number;
-        timeLimit: Number;
-    };
+export declare const allServiceDescriptors: {
+    [serviceId: string]: ServiceDescriptor;
 };
-export declare const serviceInstances: {
-    [serviceId: string]: Service;
-};
-export declare function ensureService(serviceClass: ServiceClass): {
+export declare class ServiceDescriptor {
     serviceClass: ServiceClass;
+    static get(serviceClass: ServiceClass): ServiceDescriptor;
+    constructor(serviceClass: ServiceClass);
     memoryLimit: Number;
     timeLimit: Number;
+    handlers: {
+        [methodName: string]: HandlerDescriptor;
+    };
+}
+export interface HandlerDescriptorParams {
+    serviceDescriptor: ServiceDescriptor;
+    name: string;
+}
+export declare class HandlerDescriptor {
+    serviceDescriptor: ServiceDescriptor;
+    name: string;
+    constructor(params: HandlerDescriptorParams);
+}
+export declare const allServiceInstances: {
+    [serviceName: string]: Service;
 };
-export declare function serviceDecorator(params: {
+export declare class Service {
+    static get(serviceClass: ServiceClass): void;
+    private constructor();
+}
+export declare function service(params: {
     memoryLimit?: Number;
     timeLimit?: Number;
 }): (serviceClass: ServiceClass) => void;
