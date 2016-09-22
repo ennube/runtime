@@ -2,8 +2,6 @@
 export interface ServiceClass extends Function {
     new (): Service;
 }
-export interface Service {
-}
 export declare const allServiceDescriptors: {
     [serviceId: string]: ServiceDescriptor;
 };
@@ -30,7 +28,7 @@ export declare const allServiceInstances: {
     [serviceName: string]: Service;
 };
 export declare class Service {
-    static get(serviceClass: ServiceClass): void;
+    static get(serviceClass: ServiceClass): Service;
     private constructor();
 }
 export declare function service(params: {

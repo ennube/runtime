@@ -4,9 +4,8 @@ export interface ServiceClass extends Function {
     new(): Service;
 }
 
-export interface Service {
 
-}
+
 
 export const allServiceDescriptors: {
     [serviceId:string]: ServiceDescriptor
@@ -71,7 +70,13 @@ export const allServiceInstances: {
 
 export class Service {
     static get(serviceClass: ServiceClass) {
-        //let service = allServiceInstances[]
+
+        let instance = allServiceInstances[serviceClass.name];
+        if( instance === undefined)
+            instance = allServiceInstances[serviceClass.name] =
+                new serviceClass();
+
+        return instance;
     }
     private constructor() {
         // TODO: check instance name collision..

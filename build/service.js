@@ -35,6 +35,11 @@ var Service = (function () {
         exports.allServiceInstances[type_1.typeOf(this).name] = this;
     }
     Service.get = function (serviceClass) {
+        var instance = exports.allServiceInstances[serviceClass.name];
+        if (instance === undefined)
+            instance = exports.allServiceInstances[serviceClass.name] =
+                new serviceClass();
+        return instance;
     };
     return Service;
 }());

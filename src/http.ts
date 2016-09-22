@@ -3,6 +3,103 @@ import {HandlerDescriptor, HandlerDescriptorParams, ServiceDescriptor}
 
 export namespace http {
 
+    export interface RequestData {
+        resource: string;
+        path: string;
+        httpMethod: string;
+
+        headers: Object;
+        queryStringParameters: Object;
+        pathParameters: Object;
+
+        stageVariables: {
+            gatewayName: string;
+        };
+
+        requestContext: {
+            accountId: string;
+            resourceId: string;
+            stage: string;
+            requestId: string;
+            identity: {
+                cognitoIdentityPoolId: string;
+                accountId: string;
+                cognitoIdentityId: string;
+                caller: string;
+                apiKey: string;
+                sourceIp: string;
+                cognitoAuthenticationType: string;
+                cognitoAuthenticationProvider: string;
+                userArn: string;
+                userAgent: string;
+                user: string;
+            };
+            resourcePath: string;
+            httpMethod: string;
+            apiId: string;
+        };
+
+        body: string;
+    }
+
+
+    export class Request {
+        constructor(public data: RequestData) {
+        }
+    }
+
+    interface ResponseData {
+        statusCode: number;
+        headers: Object;
+        body: string;
+    }
+
+    export class Response {
+        statusCode: number = undefined;
+        headers: Object = {};
+
+        constructor(protected resolve: (ResponseData) => void) {
+
+        }
+
+        send(body:string = null) {
+
+            if( this.headers['Content-Type'] === undefined )
+                this.headers['Content-Type'] = 'text/html; charset=utf-8';
+
+            this.resolve({
+                statusCode: this.statusCode,
+                headers: this.headers,
+                body
+            });
+            
+        }
+
+
+        json(body:any) {
+
+            if( this.headers['Content-Type'] === undefined )
+                this.headers['Content-Type'] = 'application/json; charset=utf-8';
+
+            this.resolve({
+                statusCode: this.statusCode || 200,
+                headers: this.headers,
+                body: JSON.stringify(body)
+            });
+        }
+
+        end() {
+            this.resolve({
+                statusCode: this.statusCode || 204,
+                headers: this.headers,
+                body: null
+            });
+        }
+
+    }
+
+
+
     export const allGateways: {
         [gatewayId:string]: Gateway
     } = { };
@@ -60,6 +157,10 @@ export namespace http {
 
         }
 
+        ANY(url: string) {
+            return this.endpointDecorator('ANY', url);
+        }
+
         GET(url: string) {
             return this.endpointDecorator('GET', url);
         }
@@ -76,7 +177,7 @@ export namespace http {
             return this.endpointDecorator('DELETE', url);
         }
 
-
     }
+
 
 }

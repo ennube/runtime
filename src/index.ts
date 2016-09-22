@@ -5,4 +5,4 @@ export * from './type';
 export {http} from './http';
 export {storage} from './storage';
 
-export {dispatcher, dispatchFileName} from './dispatch';
+export {mainEntry} from './main';
