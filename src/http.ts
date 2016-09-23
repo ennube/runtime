@@ -3,14 +3,115 @@ import {HandlerDescriptor, HandlerDescriptorParams, ServiceDescriptor}
 
 export namespace http {
 
+    export const allGateways: {
+        [gatewayId:string]: Gateway
+    } = { };
+
+
+    export interface EndpointParams extends HandlerDescriptorParams {
+
+    };
+
+    export class Endpoint extends HandlerDescriptor {
+
+    };
+
+    export class Gateway {
+        static get(name: string) {
+            let gateway = allGateways[name];
+            if( gateway === undefined )
+                gateway = new Gateway(name);
+
+            return gateway;
+        }
+
+        constructor(public name: string) {
+            allGateways[name] = this;
+        }
+
+        endpoints: {
+            [url:string]: {
+                [httpMethod:string]: Endpoint
+            }
+        } = { };
+
+//        middleWare: [] = [];
+
+        dispatch() {
+        }
+
+        ANY(url: string) {
+            return endpointDecorator(this, 'ANY', url);
+        }
+
+        HEAD(url: string) {
+            return endpointDecorator(this, 'HEAD', url);
+        }
+
+        GET(url: string) {
+            return endpointDecorator(this, 'GET', url);
+        }
+
+        POST(url: string) {
+            return endpointDecorator(this, 'POST', url);
+        }
+
+        PUT(url: string) {
+            return endpointDecorator(this, 'PUT', url);
+        }
+
+        PATCH(url: string) {
+            return endpointDecorator(this, 'PATCH', url);
+        }
+
+        OPTIONS(url: string) {
+            return endpointDecorator(this, 'OPTIONS', url);
+        }
+
+        DELETE(url: string) {
+            return endpointDecorator(this, 'DELETE', url);
+        }
+
+    }
+
+    function endpointDecorator(gateway:Gateway, httpMethod:string, url:string) {
+
+        return (servicePrototype: any,
+                handlerName: string,
+                descriptor: PropertyDescriptor) => {
+
+            if(typeof servicePrototype == 'function')
+                throw new Error(`${servicePrototype.name}.${handlerName}():` +
+                                `static handlers are not permitted`);
+
+            let serviceClass = servicePrototype.constructor;
+
+            let httpMethods = gateway.endpoints[url];
+            if( httpMethods === undefined)
+                httpMethods = gateway.endpoints[url] = {}
+
+            httpMethods[httpMethod] = new Endpoint({
+                serviceDescriptor: ServiceDescriptor.get(serviceClass),
+                name: handlerName,
+            });
+
+        };
+
+    }
+
     export interface RequestData {
+        httpMethod: string;
         resource: string;
         path: string;
-        httpMethod: string;
-
-        headers: Object;
-        queryStringParameters: Object;
-        pathParameters: Object;
+        pathParameters: {
+            [param:string]: string
+        };
+        queryStringParameters: {
+            [queryParam:string]: string
+        };
+        headers: {
+            [headerName:string]: string
+        };
 
         stageVariables: {
             gatewayName: string;
@@ -44,19 +145,37 @@ export namespace http {
 
 
     export class Request {
-        constructor(public data: RequestData) {
+        method: string;
+        path: string;
+        params: {
+            [paramName:string]: string
+        };
+        query: {
+            [paramName:string]: string
+        };
+        body: string;
+
+        constructor(event: RequestData) {
+            this.method = event.httpMethod;
+            this.path = event.path;
+            this.params = event.pathParameters || {};
+            this.query = event.queryStringParameters || {};
+            this.body = event.body;
         }
+
+
+
     }
 
     interface ResponseData {
         statusCode: number;
-        headers: Object;
+        headers: any;
         body: string;
     }
 
     export class Response {
         statusCode: number = undefined;
-        headers: Object = {};
+        headers: any = {};
 
         constructor(protected resolve: (ResponseData) => void) {
 
@@ -72,7 +191,7 @@ export namespace http {
                 headers: this.headers,
                 body
             });
-            
+
         }
 
 
@@ -97,87 +216,5 @@ export namespace http {
         }
 
     }
-
-
-
-    export const allGateways: {
-        [gatewayId:string]: Gateway
-    } = { };
-
-
-    export interface EndpointParams extends HandlerDescriptorParams {
-
-    };
-
-    export class Endpoint extends HandlerDescriptor {
-
-    };
-
-    export class Gateway {
-        static get(name: string) {
-            let gateway = allGateways[name];
-            if( gateway === undefined )
-                gateway = new Gateway(name);
-
-            return gateway;
-        }
-
-        constructor(public name: string) {
-            allGateways[name] = this;
-        }
-
-        endpoints: {
-            [url:string]: {
-                [httpMethod:string]: Endpoint
-            }
-        } = { }
-
-        private endpointDecorator(httpMethod, url) {
-
-            return (servicePrototype: any,
-                    handlerName: string,
-                    descriptor: PropertyDescriptor) => {
-
-                if(typeof servicePrototype == 'function')
-                    throw new Error(`${servicePrototype.name}.${handlerName}():` +
-                                    `static handlers are not permitted`);
-
-                let serviceClass = servicePrototype.constructor;
-
-                let httpMethods = this.endpoints[url];
-                if( httpMethods === undefined)
-                    httpMethods = this.endpoints[url] = {}
-
-                httpMethods[httpMethod] = new Endpoint({
-                    serviceDescriptor: ServiceDescriptor.get(serviceClass),
-                    name: handlerName,
-                });
-
-            };
-
-        }
-
-        ANY(url: string) {
-            return this.endpointDecorator('ANY', url);
-        }
-
-        GET(url: string) {
-            return this.endpointDecorator('GET', url);
-        }
-
-        POST(url: string) {
-            return this.endpointDecorator('POST', url);
-        }
-
-        PUT(url: string) {
-            return this.endpointDecorator('PUT', url);
-        }
-
-        DELETE(url: string) {
-            return this.endpointDecorator('DELETE', url);
-        }
-
-    }
-
 
 }

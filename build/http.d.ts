@@ -1,13 +1,39 @@
 /// <reference types="core-js" />
 import { HandlerDescriptor, HandlerDescriptorParams } from './service';
 export declare namespace http {
+    const allGateways: {
+        [gatewayId: string]: Gateway;
+    };
+    interface EndpointParams extends HandlerDescriptorParams {
+    }
+    class Endpoint extends HandlerDescriptor {
+    }
+    class Gateway {
+        name: string;
+        static get(name: string): Gateway;
+        constructor(name: string);
+        endpoints: {
+            [url: string]: {
+                [httpMethod: string]: Endpoint;
+            };
+        };
+        dispatch(): void;
+        ANY(url: string): (servicePrototype: any, handlerName: string, descriptor: PropertyDescriptor) => void;
+        HEAD(url: string): (servicePrototype: any, handlerName: string, descriptor: PropertyDescriptor) => void;
+        GET(url: string): (servicePrototype: any, handlerName: string, descriptor: PropertyDescriptor) => void;
+        POST(url: string): (servicePrototype: any, handlerName: string, descriptor: PropertyDescriptor) => void;
+        PUT(url: string): (servicePrototype: any, handlerName: string, descriptor: PropertyDescriptor) => void;
+        PATCH(url: string): (servicePrototype: any, handlerName: string, descriptor: PropertyDescriptor) => void;
+        OPTIONS(url: string): (servicePrototype: any, handlerName: string, descriptor: PropertyDescriptor) => void;
+        DELETE(url: string): (servicePrototype: any, handlerName: string, descriptor: PropertyDescriptor) => void;
+    }
     interface RequestData {
+        httpMethod: string;
         resource: string;
         path: string;
-        httpMethod: string;
-        headers: Object;
-        queryStringParameters: Object;
         pathParameters: Object;
+        queryStringParameters: Object;
+        headers: Object;
         stageVariables: {
             gatewayName: string;
         };
@@ -36,39 +62,20 @@ export declare namespace http {
         body: string;
     }
     class Request {
-        data: RequestData;
-        constructor(data: RequestData);
+        method: string;
+        path: string;
+        params: any;
+        query: any;
+        body: string;
+        constructor(event: RequestData);
     }
     class Response {
         protected resolve: (ResponseData) => void;
         statusCode: number;
-        headers: Object;
+        headers: any;
         constructor(resolve: (ResponseData) => void);
         send(body?: string): void;
         json(body: any): void;
         end(): void;
-    }
-    const allGateways: {
-        [gatewayId: string]: Gateway;
-    };
-    interface EndpointParams extends HandlerDescriptorParams {
-    }
-    class Endpoint extends HandlerDescriptor {
-    }
-    class Gateway {
-        name: string;
-        static get(name: string): Gateway;
-        constructor(name: string);
-        endpoints: {
-            [url: string]: {
-                [httpMethod: string]: Endpoint;
-            };
-        };
-        private endpointDecorator(httpMethod, url);
-        ANY(url: string): (servicePrototype: any, handlerName: string, descriptor: PropertyDescriptor) => void;
-        GET(url: string): (servicePrototype: any, handlerName: string, descriptor: PropertyDescriptor) => void;
-        POST(url: string): (servicePrototype: any, handlerName: string, descriptor: PropertyDescriptor) => void;
-        PUT(url: string): (servicePrototype: any, handlerName: string, descriptor: PropertyDescriptor) => void;
-        DELETE(url: string): (servicePrototype: any, handlerName: string, descriptor: PropertyDescriptor) => void;
     }
 }

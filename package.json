@@ -1,7 +1,7 @@
 {
   "name": "@ennube/runtime",
-  "version": "0.0.1-alpha",
-  "description": "Ennube runtime framework",
+  "version": "0.0.2-beta",
+  "description": "The bridges between your application, the ennube shell and your cloud provider",
   "main": "build/index.js",
   "types": "build/index.d.ts",
   "scripts": {
@@ -21,6 +21,7 @@
     "core-js": "^2.4.1"
   },
   "devDependencies": {
-    "@types/core-js": "^0.9.32"
+    "@types/core-js": "^0.9.32",
+    "@types/pug": "^2.0.1"
   }
 }

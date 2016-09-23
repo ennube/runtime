@@ -7,9 +7,80 @@ var __extends = (this && this.__extends) || function (d, b) {
 var service_1 = require('./service');
 var http;
 (function (http) {
+    http.allGateways = {};
+    ;
+    var Endpoint = (function (_super) {
+        __extends(Endpoint, _super);
+        function Endpoint() {
+            _super.apply(this, arguments);
+        }
+        return Endpoint;
+    }(service_1.HandlerDescriptor));
+    http.Endpoint = Endpoint;
+    ;
+    var Gateway = (function () {
+        function Gateway(name) {
+            this.name = name;
+            this.endpoints = {};
+            http.allGateways[name] = this;
+        }
+        Gateway.get = function (name) {
+            var gateway = http.allGateways[name];
+            if (gateway === undefined)
+                gateway = new Gateway(name);
+            return gateway;
+        };
+        Gateway.prototype.dispatch = function () {
+        };
+        Gateway.prototype.ANY = function (url) {
+            return endpointDecorator(this, 'ANY', url);
+        };
+        Gateway.prototype.HEAD = function (url) {
+            return endpointDecorator(this, 'HEAD', url);
+        };
+        Gateway.prototype.GET = function (url) {
+            return endpointDecorator(this, 'GET', url);
+        };
+        Gateway.prototype.POST = function (url) {
+            return endpointDecorator(this, 'POST', url);
+        };
+        Gateway.prototype.PUT = function (url) {
+            return endpointDecorator(this, 'PUT', url);
+        };
+        Gateway.prototype.PATCH = function (url) {
+            return endpointDecorator(this, 'PATCH', url);
+        };
+        Gateway.prototype.OPTIONS = function (url) {
+            return endpointDecorator(this, 'OPTIONS', url);
+        };
+        Gateway.prototype.DELETE = function (url) {
+            return endpointDecorator(this, 'DELETE', url);
+        };
+        return Gateway;
+    }());
+    http.Gateway = Gateway;
+    function endpointDecorator(gateway, httpMethod, url) {
+        return function (servicePrototype, handlerName, descriptor) {
+            if (typeof servicePrototype == 'function')
+                throw new Error((servicePrototype.name + "." + handlerName + "():") +
+                    "static handlers are not permitted");
+            var serviceClass = servicePrototype.constructor;
+            var httpMethods = gateway.endpoints[url];
+            if (httpMethods === undefined)
+                httpMethods = gateway.endpoints[url] = {};
+            httpMethods[httpMethod] = new Endpoint({
+                serviceDescriptor: service_1.ServiceDescriptor.get(serviceClass),
+                name: handlerName,
+            });
+        };
+    }
     var Request = (function () {
-        function Request(data) {
-            this.data = data;
+        function Request(event) {
+            this.method = event.httpMethod;
+            this.path = event.path;
+            this.params = event.pathParameters || {};
+            this.query = event.queryStringParameters || {};
+            this.body = event.body;
         }
         return Request;
     }());
@@ -49,62 +120,5 @@ var http;
         return Response;
     }());
     http.Response = Response;
-    http.allGateways = {};
-    ;
-    var Endpoint = (function (_super) {
-        __extends(Endpoint, _super);
-        function Endpoint() {
-            _super.apply(this, arguments);
-        }
-        return Endpoint;
-    }(service_1.HandlerDescriptor));
-    http.Endpoint = Endpoint;
-    ;
-    var Gateway = (function () {
-        function Gateway(name) {
-            this.name = name;
-            this.endpoints = {};
-            http.allGateways[name] = this;
-        }
-        Gateway.get = function (name) {
-            var gateway = http.allGateways[name];
-            if (gateway === undefined)
-                gateway = new Gateway(name);
-            return gateway;
-        };
-        Gateway.prototype.endpointDecorator = function (httpMethod, url) {
-            var _this = this;
-            return function (servicePrototype, handlerName, descriptor) {
-                if (typeof servicePrototype == 'function')
-                    throw new Error((servicePrototype.name + "." + handlerName + "():") +
-                        "static handlers are not permitted");
-                var serviceClass = servicePrototype.constructor;
-                var httpMethods = _this.endpoints[url];
-                if (httpMethods === undefined)
-                    httpMethods = _this.endpoints[url] = {};
-                httpMethods[httpMethod] = new Endpoint({
-                    serviceDescriptor: service_1.ServiceDescriptor.get(serviceClass),
-                    name: handlerName,
-                });
-            };
-        };
-        Gateway.prototype.ANY = function (url) {
-            return this.endpointDecorator('ANY', url);
-        };
-        Gateway.prototype.GET = function (url) {
-            return this.endpointDecorator('GET', url);
-        };
-        Gateway.prototype.POST = function (url) {
-            return this.endpointDecorator('POST', url);
-        };
-        Gateway.prototype.PUT = function (url) {
-            return this.endpointDecorator('PUT', url);
-        };
-        Gateway.prototype.DELETE = function (url) {
-            return this.endpointDecorator('DELETE', url);
-        };
-        return Gateway;
-    }());
-    http.Gateway = Gateway;
 })(http = exports.http || (exports.http = {}));
 //# sourceMappingURL=http.js.map
