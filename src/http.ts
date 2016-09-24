@@ -147,12 +147,8 @@ export namespace http {
     export class Request {
         method: string;
         path: string;
-        params: {
-            [paramName:string]: string
-        };
-        query: {
-            [paramName:string]: string
-        };
+        params: {};
+        query: {};
         body: string;
 
         constructor(event: RequestData) {
@@ -162,9 +158,6 @@ export namespace http {
             this.query = event.queryStringParameters || {};
             this.body = event.body;
         }
-
-
-
     }
 
     interface ResponseData {
