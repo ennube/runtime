@@ -1,7 +1,7 @@
 {
   "name": "@ennube/runtime",
-  "version": "0.0.2-beta",
-  "description": "The bridges between your application, the ennube shell and your cloud provider",
+  "version": "0.2.0-beta.2",
+  "description": "The bridge between your application, the ennube shell and your cloud provider",
   "main": "build/index.js",
   "types": "build/index.d.ts",
   "scripts": {
@@ -18,10 +18,9 @@
   },
   "homepage": "https://github.com/ennube/runtime#readme",
   "dependencies": {
-    "core-js": "^2.4.1"
+    "core-js": "^2.4.1",
+    "@types/core-js": "^0.9.32"
   },
   "devDependencies": {
-    "@types/core-js": "^0.9.32",
-    "@types/pug": "^2.0.1"
   }
 }

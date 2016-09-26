@@ -162,13 +162,13 @@ export namespace http {
 
     interface ResponseData {
         statusCode: number;
-        headers: any;
+        headers: {};
         body: string;
     }
 
     export class Response {
         statusCode: number = undefined;
-        headers: any = {};
+        headers: {} = {};
 
         constructor(protected resolve: (ResponseData) => void) {
 
