@@ -4,14 +4,28 @@ export interface ServiceClass extends Function {
     new(): Service;
 }
 
-
-
-
 export const allServiceDescriptors: {
     [serviceId:string]: ServiceDescriptor
 } = { };
 
+export const allServiceInstances: {
+    [serviceName:string]: Service
+} = { };
+
+
 export class ServiceDescriptor {
+
+    memoryLimit: number = 512;
+    timeLimit: number = 6;
+    managedPolicies: string[] = [];
+
+    handlers: {
+        [methodName:string]: HandlerDescriptor
+    } = { };
+
+    constructor(public serviceClass: ServiceClass) {
+        allServiceDescriptors[serviceClass.name] = this;
+    }
 
     static get(serviceClass: ServiceClass) {
 
@@ -26,21 +40,34 @@ export class ServiceDescriptor {
         return serviceDescriptor;
     }
 
-    constructor(public serviceClass: ServiceClass) {
-        allServiceDescriptors[serviceClass.name] = this;
-    }
+    get instance() {
+        let instance = allServiceInstances[this.serviceClass.name];
+        if( instance === undefined)
+            instance = allServiceInstances[this.serviceClass.name] =
+                new this.serviceClass();
 
-    memoryLimit: Number = 512;
-    timeLimit: Number = 6;
-    handlers: {
-        [methodName:string]: HandlerDescriptor
-    } = { };
+        return instance;
+    }
+}
+
+export interface ServiceSettings {
+    memoryLimit?: number;
+    timeLimit?: number;
+    managedPolicies: string[];
+}
+
+export function service(settings: ServiceSettings) {
+    return (serviceClass: ServiceClass) => {
+        Object.assign(
+            ServiceDescriptor.get(serviceClass),
+            settings
+        );
+    };
 }
 
 export interface HandlerDescriptorParams {
     serviceDescriptor: ServiceDescriptor;
     name: string;
-
 }
 
 export class HandlerDescriptor {
@@ -64,9 +91,6 @@ export class HandlerDescriptor {
 
 }
 
-export const allServiceInstances: {
-    [serviceName:string]: Service
-} = { };
 
 export class Service {
     static get(serviceClass: ServiceClass) {
@@ -80,21 +104,11 @@ export class Service {
     }
     private constructor() {
         // TODO: check instance name collision..
-        allServiceInstances[typeOf(this).name] = this;
+        //allServiceInstances[typeOf(this).name] = this;
     }
 }
 
-export function service(params: {
-    memoryLimit?: Number,
-    timeLimit?: Number,
-}) {
-    return (serviceClass: ServiceClass) => {
-        Object.assign(
-            ServiceDescriptor.get(serviceClass),
-            params
-        );
-    };
-}
+
 /*
 export function makeHandlerDescriptorDecorator( callback: (HandlerDescriptor) => any ) {
 

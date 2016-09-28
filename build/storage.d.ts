@@ -1,6 +1,6 @@
 export declare namespace storage {
     type AccessControl = "AuthenticatedRead" | "AwsExecRead" | "BucketOwnerRead" | "BucketOwnerFullControl" | "LogDeliveryWrite" | "Private" | "PublicRead" | "PublicReadWrite";
-    const AccessControl: {
+    const accessControl: {
         AuthenticatedRead: AccessControl;
         AwsExecRead: AccessControl;
         BucketOwnerRead: AccessControl;
@@ -13,10 +13,20 @@ export declare namespace storage {
     const allBuckets: {
         [name: string]: Bucket;
     };
-    class Bucket {
+    interface BucketParams {
         name: string;
-        accessControl: AccessControl;
+        staged?: boolean;
+        versioning?: boolean;
+        extern?: boolean;
+        accessControl?: AccessControl;
+    }
+    class Bucket implements BucketParams {
+        name: string;
         staged: boolean;
-        constructor(name: string, accessControl?: AccessControl, staged?: boolean);
+        versioning: boolean;
+        extern: boolean;
+        accessControl: "Private";
+        protected client: any;
+        constructor(params: BucketParams);
     }
 }

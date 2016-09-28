@@ -1,1 +1,1 @@
-export declare function mainEntry(event: any, context: any, done: any): void;
+export declare function mainEntry(event: any, context: any, callback: (Error, {}) => void): void;

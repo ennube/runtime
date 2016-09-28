@@ -1,7 +1,8 @@
 "use strict";
+var aws = require('aws-sdk');
 var storage;
 (function (storage) {
-    storage.AccessControl = {
+    storage.accessControl = {
         AuthenticatedRead: "AuthenticatedRead",
         AwsExecRead: "AwsExecRead",
         BucketOwnerRead: "BucketOwnerRead",
@@ -12,18 +13,20 @@ var storage;
         PublicReadWrite: "PublicReadWrite",
     };
     storage.allBuckets = {};
+    ;
     var Bucket = (function () {
-        function Bucket(name, accessControl, staged) {
-            if (accessControl === void 0) { accessControl = storage.AccessControl.Private; }
-            if (staged === void 0) { staged = true; }
-            this.name = name;
-            this.accessControl = accessControl;
-            this.staged = staged;
-            storage.allBuckets[name] = this;
+        function Bucket(params) {
+            this.staged = false;
+            this.versioning = false;
+            this.extern = false;
+            if (params.name in storage.allBuckets)
+                throw new Error("Bucket " + params.name + " name duplicated");
+            Object.assign(this, params);
+            storage.allBuckets[params.name] = this;
+            this.client = aws.S3();
         }
         return Bucket;
     }());
     storage.Bucket = Bucket;
-    var deploymentBucket = new Bucket('deployment', storage.AccessControl.Private, false);
 })(storage = exports.storage || (exports.storage = {}));
 //# sourceMappingURL=storage.js.map

@@ -1,4 +1,3 @@
-import 'core-js';
 export * from './service';
 export * from './type';
 export { http } from './http';

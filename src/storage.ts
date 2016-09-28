@@ -1,3 +1,5 @@
+const aws = require('aws-sdk');
+
 export namespace storage {
 
     export type AccessControl =
@@ -10,7 +12,7 @@ export namespace storage {
         "PublicRead" |
         "PublicReadWrite";
 
-    export const AccessControl = {
+    export const accessControl = {
         AuthenticatedRead: "AuthenticatedRead" as AccessControl,
         AwsExecRead: "AwsExecRead" as AccessControl,
         BucketOwnerRead: "BucketOwnerRead" as AccessControl,
@@ -25,16 +27,35 @@ export namespace storage {
         [name:string]: Bucket
     } = { };
 
-    export class Bucket {
-        constructor(public name: string,
-                    public accessControl: AccessControl = AccessControl.Private,
-                    public staged = true) {
+    export interface BucketParams {
+        name: string;
+        staged?: boolean;
+        versioning?: boolean;
+        extern?: boolean; // the bucket is out of the stack.
+        accessControl?: AccessControl;
+    };
 
-            allBuckets[name] = this;
+    export class Bucket implements BucketParams {
+        name: string;
+        staged: boolean=  false;
+        versioning: boolean = false;
+        extern: boolean = false;
+        accessControl: "Private";
+
+        protected client: any;
+
+        constructor(params: BucketParams) {
+            if( params.name in allBuckets )
+                throw new Error(`Bucket ${params.name} name duplicated`);
+
+            Object.assign(this, params);
+            allBuckets[params.name] = this;
+
+            this.client = aws.S3();
         }
-    }
 
-    const deploymentBucket = new Bucket('deployment',
-        AccessControl.Private, false);
+        
+
+    }
 
 }

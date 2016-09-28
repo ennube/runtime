@@ -18,9 +18,12 @@
   },
   "homepage": "https://github.com/ennube/runtime#readme",
   "dependencies": {
-    "core-js": "^2.4.1",
-    "@types/core-js": "^0.9.32"
+    "@types/core-js": "^0.9.32",
+    "aws-sdk": "^2.6.4",
+    "core-js": "^2.4.1"
   },
   "devDependencies": {
+    "@types/core-js": "^0.9.34",
+    "@types/node": "^6.0.41"
   }
 }

@@ -16,88 +16,6 @@ export namespace http {
 
     };
 
-    export class Gateway {
-        static get(name: string) {
-            let gateway = allGateways[name];
-            if( gateway === undefined )
-                gateway = new Gateway(name);
-
-            return gateway;
-        }
-
-        constructor(public name: string) {
-            allGateways[name] = this;
-        }
-
-        endpoints: {
-            [url:string]: {
-                [httpMethod:string]: Endpoint
-            }
-        } = { };
-
-//        middleWare: [] = [];
-
-        dispatch() {
-        }
-
-        ANY(url: string) {
-            return endpointDecorator(this, 'ANY', url);
-        }
-
-        HEAD(url: string) {
-            return endpointDecorator(this, 'HEAD', url);
-        }
-
-        GET(url: string) {
-            return endpointDecorator(this, 'GET', url);
-        }
-
-        POST(url: string) {
-            return endpointDecorator(this, 'POST', url);
-        }
-
-        PUT(url: string) {
-            return endpointDecorator(this, 'PUT', url);
-        }
-
-        PATCH(url: string) {
-            return endpointDecorator(this, 'PATCH', url);
-        }
-
-        OPTIONS(url: string) {
-            return endpointDecorator(this, 'OPTIONS', url);
-        }
-
-        DELETE(url: string) {
-            return endpointDecorator(this, 'DELETE', url);
-        }
-
-    }
-
-    function endpointDecorator(gateway:Gateway, httpMethod:string, url:string) {
-
-        return (servicePrototype: any,
-                handlerName: string,
-                descriptor: PropertyDescriptor) => {
-
-            if(typeof servicePrototype == 'function')
-                throw new Error(`${servicePrototype.name}.${handlerName}():` +
-                                `static handlers are not permitted`);
-
-            let serviceClass = servicePrototype.constructor;
-
-            let httpMethods = gateway.endpoints[url];
-            if( httpMethods === undefined)
-                httpMethods = gateway.endpoints[url] = {}
-
-            httpMethods[httpMethod] = new Endpoint({
-                serviceDescriptor: ServiceDescriptor.get(serviceClass),
-                name: handlerName,
-            });
-
-        };
-
-    }
 
     export interface RequestData {
         httpMethod: string;
@@ -143,68 +61,229 @@ export namespace http {
         body: string;
     }
 
+    export interface ResponseData {
+        statusCode: number;
+        headers: {
+            [headerName:string]: string
+        };
+        body: string;
+    }
+
+
+    /*
+        Gateway
+     */
+
+
+     function endpointDecorator(gateway:Gateway, httpMethod:string, url:string) {
+
+         return (servicePrototype: any,
+                 handlerName: string,
+                 descriptor: PropertyDescriptor) => {
+
+             if(typeof servicePrototype == 'function')
+                 throw new Error(`${servicePrototype.name}.${handlerName}():` +
+                                 `static handlers are not permitted`);
+
+             let serviceClass = servicePrototype.constructor;
+
+             let httpMethods = gateway.endpoints[url];
+             if( httpMethods === undefined)
+                 httpMethods = gateway.endpoints[url] = {}
+
+             httpMethods[httpMethod] = new Endpoint({
+                 serviceDescriptor: ServiceDescriptor.get(serviceClass),
+                 name: handlerName,
+             });
+
+         };
+     }
+
+
+
+     export interface GatewaySettings {
+         /*
+         */
+     };
+
+     export class Gateway {
+
+        static default(){
+            let gatewayNames = Object.getOwnPropertyNames(http.allGateways);
+            if( gatewayNames.length > 0 )
+                return gatewayNames[0]
+        }
+
+
+        static get(name: string) {
+
+            let gateway = allGateways[name];
+            if( gateway === undefined )
+                gateway = new Gateway(name);
+
+            return gateway;
+        }
+
+
+        constructor(public name: string, settings:GatewaySettings={}) {
+            Object.assign(this, settings);
+            allGateways[name] = this;
+        }
+
+        endpoints: {
+            [url:string]: {
+                [httpMethod:string]: Endpoint
+            }
+        } = { };
+
+        ANY(url: string) {
+            return endpointDecorator(this, 'ANY', url);
+        }
+
+        HEAD(url: string) {
+            return endpointDecorator(this, 'HEAD', url);
+        }
+
+        GET(url: string) {
+            return endpointDecorator(this, 'GET', url);
+        }
+
+        POST(url: string) {
+            return endpointDecorator(this, 'POST', url);
+        }
+
+        PUT(url: string) {
+            return endpointDecorator(this, 'PUT', url);
+        }
+
+        PATCH(url: string) {
+            return endpointDecorator(this, 'PATCH', url);
+        }
+
+        OPTIONS(url: string) {
+            return endpointDecorator(this, 'OPTIONS', url);
+        }
+
+        DELETE(url: string) {
+            return endpointDecorator(this, 'DELETE', url);
+        }
+
+        //dispatch(requestData: RequestData, responseCallback: (ResponseData) => void) {
+        dispatch(requestData: RequestData) {
+
+            let httpMethods = this.endpoints[requestData.resource];
+            if( httpMethods === undefined )
+                throw new Error(`Unnable to route '${requestData.resource}'`);
+
+            let endpoint = httpMethods[requestData.httpMethod];
+            if( endpoint === undefined ) {
+                endpoint = httpMethods['ANY'];
+                if( endpoint === undefined )
+                    throw new Error(`Invalid method '${requestData.httpMethod}'`);
+            }
+
+            let service = endpoint.serviceDescriptor.instance;
+
+
+            // apply middleware
+            return new Promise( (resolve) => {
+
+                let request = new Request(requestData);
+                let response = new Response(request, resolve);
+                try {
+                    service[endpoint.name](request, response);
+                }
+                catch(e) {
+                    resolve({
+                        statusCode: 500,
+                        headers: {},
+                        body: `CRITICAL ERROR (level 3)\n\t${e}\n${e.stack}`
+                    })
+                }
+            });
+        }
+    }
+
+
+
 
     export class Request {
         method: string;
         path: string;
-        params: {};
-        query: {};
-        body: string;
+        params: { [headerName:string]: string };
+        query: { [headerName:string]: string };
+        headers: { [headerName:string]: string };
+        body: any;
 
         constructor(event: RequestData) {
             this.method = event.httpMethod;
             this.path = event.path;
+            this.headers = event.headers || {};
             this.params = event.pathParameters || {};
             this.query = event.queryStringParameters || {};
-            this.body = event.body;
+
+            if( this.get('Content-Type') == 'application/json' )
+                this.body = JSON.parse(event.body);
+            else
+                this.body = event.body;
         }
+
+        get(headerName: string) {
+            return this.headers[headerName];
+        }
+
     }
 
-    interface ResponseData {
-        statusCode: number;
-        headers: {};
-        body: string;
-    }
+
 
     export class Response {
         statusCode: number = undefined;
         headers: {} = {};
 
-        constructor(protected resolve: (ResponseData) => void) {
+        constructor(protected request:Request, protected callback) {
 
         }
 
-        send(body:string = null) {
+        status(statusCode: number) {
+            this.statusCode = statusCode;
+            return this;
+        }
+
+        send(body:string) {
+            console.log('SENDING', body);
 
             if( this.headers['Content-Type'] === undefined )
                 this.headers['Content-Type'] = 'text/html; charset=utf-8';
 
-            this.resolve({
-                statusCode: this.statusCode,
+            this.callback({
+                statusCode: this.statusCode || 200,
                 headers: this.headers,
-                body
+                body: body
             });
 
         }
 
 
         json(body:any) {
+            body = JSON.stringify(body);
+            console.log('SENDING JSON', body);
 
             if( this.headers['Content-Type'] === undefined )
                 this.headers['Content-Type'] = 'application/json; charset=utf-8';
 
-            this.resolve({
+            this.callback({
                 statusCode: this.statusCode || 200,
                 headers: this.headers,
-                body: JSON.stringify(body)
+                body: body
             });
+
         }
 
         end() {
-            this.resolve({
+            this.callback({
                 statusCode: this.statusCode || 204,
                 headers: this.headers,
-                body: null
+                body: ''
             });
         }
 

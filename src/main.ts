@@ -5,49 +5,46 @@ import * as service from './service';
     ENTRY POINT
 */
 
-export function mainEntry(event, context, done) {
+//export declare type Calback = (Error, {}) => void;
 
-    if('httpMethod' in event)
-        httpDispatcher(event, context)
-        .then( (response) => done(null, response))
-        .catch( (error) => done(null, {
-            statusCode: 500,
-            headers: {},
-            body: `${error}`
-        }))
-    else
-        done('unknow event source');
+export function mainEntry(event, context, callback: (Error, {}) => void ) {
 
-}
+    if('httpMethod' in event) {
+        try {
+            let gatewayName = event.stageVariables?
+                event.stageVariables.gatewayName:
+                http.Gateway.default();
 
-function httpDispatcher(event, context) {
-    return new Promise( (resolve, reject) => {
+            if( gatewayName === undefined )
+                throw new Error(`Undefined gateway`);
 
-        let gatewayName = event.stageVariables? event.stageVariables.gatewayName: 'web';
-        if( gatewayName === undefined )
-            throw new Error(`Undefined gateway`);
+            let gateway = http.allGateways[gatewayName];
+            if( gateway === undefined )
+                throw new Error(`Undefined gateway '${gatewayName}'`);
 
-        let gateway = http.allGateways[gatewayName];
-        if( gateway === undefined )
-            throw new Error(`Undefined gateway '${gatewayName}'`);
-
-        let httpMethods = gateway.endpoints[event.resource];
-        if( httpMethods === undefined )
-            throw new Error(`Unnable to route '${event.resource}''`);
-
-        let endpoint = httpMethods[event.httpMethod];
-        if( endpoint === undefined ) {
-            endpoint = httpMethods['ANY'];
-            if( endpoint === undefined )
-                throw new Error(`Invalid method '${event.httpMethod}'`);
+/*
+            gateway.dispatch(event, (response: http.ResponseData) =>
+                done(null, response)
+            );
+*/
+            gateway.dispatch(event)
+            .then( (v) => callback(null, v) )
+            .catch( (e) => callback(null, {
+                statusCode: 500,
+                headers: {},
+                body: `CRITICAL ERROR (level 2)\n\t${e}\n${e.stack}`
+            }))
+            //httpDispatcher(event, context, done);
         }
+        catch(e) {
+            callback(null, {
+                statusCode: 500,
+                headers: {},
+                body: `CRITICAL ERROR (level 1)\n\t${e}\n${e.stack}`
+            });
+        }
+    }
+    else
+        callback(new Error('unknow event source'), null);
 
-        let request = new http.Request(event as http.RequestData);
-        let response = new http.Response(resolve);
-
-        let serviceInstance = service.Service.get(endpoint.serviceDescriptor.serviceClass);
-
-        serviceInstance[endpoint.name](request, response);
-
-    });
 }

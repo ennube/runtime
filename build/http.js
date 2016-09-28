@@ -18,19 +18,40 @@ var http;
     }(service_1.HandlerDescriptor));
     http.Endpoint = Endpoint;
     ;
+    function endpointDecorator(gateway, httpMethod, url) {
+        return function (servicePrototype, handlerName, descriptor) {
+            if (typeof servicePrototype == 'function')
+                throw new Error((servicePrototype.name + "." + handlerName + "():") +
+                    "static handlers are not permitted");
+            var serviceClass = servicePrototype.constructor;
+            var httpMethods = gateway.endpoints[url];
+            if (httpMethods === undefined)
+                httpMethods = gateway.endpoints[url] = {};
+            httpMethods[httpMethod] = new Endpoint({
+                serviceDescriptor: service_1.ServiceDescriptor.get(serviceClass),
+                name: handlerName,
+            });
+        };
+    }
+    ;
     var Gateway = (function () {
-        function Gateway(name) {
+        function Gateway(name, settings) {
+            if (settings === void 0) { settings = {}; }
             this.name = name;
             this.endpoints = {};
+            Object.assign(this, settings);
             http.allGateways[name] = this;
         }
+        Gateway.default = function () {
+            var gatewayNames = Object.getOwnPropertyNames(http.allGateways);
+            if (gatewayNames.length > 0)
+                return gatewayNames[0];
+        };
         Gateway.get = function (name) {
             var gateway = http.allGateways[name];
             if (gateway === undefined)
                 gateway = new Gateway(name);
             return gateway;
-        };
-        Gateway.prototype.dispatch = function () {
         };
         Gateway.prototype.ANY = function (url) {
             return endpointDecorator(this, 'ANY', url);
@@ -56,65 +77,90 @@ var http;
         Gateway.prototype.DELETE = function (url) {
             return endpointDecorator(this, 'DELETE', url);
         };
+        Gateway.prototype.dispatch = function (requestData) {
+            var httpMethods = this.endpoints[requestData.resource];
+            if (httpMethods === undefined)
+                throw new Error("Unnable to route '" + requestData.resource + "'");
+            var endpoint = httpMethods[requestData.httpMethod];
+            if (endpoint === undefined) {
+                endpoint = httpMethods['ANY'];
+                if (endpoint === undefined)
+                    throw new Error("Invalid method '" + requestData.httpMethod + "'");
+            }
+            var service = endpoint.serviceDescriptor.instance;
+            return new Promise(function (resolve) {
+                var request = new Request(requestData);
+                var response = new Response(request, resolve);
+                try {
+                    service[endpoint.name](request, response);
+                }
+                catch (e) {
+                    resolve({
+                        statusCode: 500,
+                        headers: {},
+                        body: "CRITICAL ERROR (level 3)\n\t" + e + "\n" + e.stack
+                    });
+                }
+            });
+        };
         return Gateway;
     }());
     http.Gateway = Gateway;
-    function endpointDecorator(gateway, httpMethod, url) {
-        return function (servicePrototype, handlerName, descriptor) {
-            if (typeof servicePrototype == 'function')
-                throw new Error((servicePrototype.name + "." + handlerName + "():") +
-                    "static handlers are not permitted");
-            var serviceClass = servicePrototype.constructor;
-            var httpMethods = gateway.endpoints[url];
-            if (httpMethods === undefined)
-                httpMethods = gateway.endpoints[url] = {};
-            httpMethods[httpMethod] = new Endpoint({
-                serviceDescriptor: service_1.ServiceDescriptor.get(serviceClass),
-                name: handlerName,
-            });
-        };
-    }
     var Request = (function () {
         function Request(event) {
             this.method = event.httpMethod;
             this.path = event.path;
+            this.headers = event.headers || {};
             this.params = event.pathParameters || {};
             this.query = event.queryStringParameters || {};
-            this.body = event.body;
+            if (this.get('Content-Type') == 'application/json')
+                this.body = JSON.parse(event.body);
+            else
+                this.body = event.body;
         }
+        Request.prototype.get = function (headerName) {
+            return this.headers[headerName];
+        };
         return Request;
     }());
     http.Request = Request;
     var Response = (function () {
-        function Response(resolve) {
-            this.resolve = resolve;
+        function Response(request, callback) {
+            this.request = request;
+            this.callback = callback;
             this.statusCode = undefined;
             this.headers = {};
         }
+        Response.prototype.status = function (statusCode) {
+            this.statusCode = statusCode;
+            return this;
+        };
         Response.prototype.send = function (body) {
-            if (body === void 0) { body = null; }
+            console.log('SENDING', body);
             if (this.headers['Content-Type'] === undefined)
                 this.headers['Content-Type'] = 'text/html; charset=utf-8';
-            this.resolve({
-                statusCode: this.statusCode,
+            this.callback({
+                statusCode: this.statusCode || 200,
                 headers: this.headers,
                 body: body
             });
         };
         Response.prototype.json = function (body) {
+            body = JSON.stringify(body);
+            console.log('SENDING JSON', body);
             if (this.headers['Content-Type'] === undefined)
                 this.headers['Content-Type'] = 'application/json; charset=utf-8';
-            this.resolve({
+            this.callback({
                 statusCode: this.statusCode || 200,
                 headers: this.headers,
-                body: JSON.stringify(body)
+                body: body
             });
         };
         Response.prototype.end = function () {
-            this.resolve({
+            this.callback({
                 statusCode: this.statusCode || 204,
                 headers: this.headers,
-                body: null
+                body: ''
             });
         };
         return Response;
