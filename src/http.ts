@@ -263,7 +263,6 @@ export namespace http {
 
         }
 
-
         json(body:any) {
             body = JSON.stringify(body);
             console.log('SENDING JSON', body);
@@ -278,6 +277,20 @@ export namespace http {
             });
 
         }
+
+        error(error:any) {
+
+            if( this.headers['Content-Type'] === undefined )
+                this.headers['Content-Type'] = 'application/json; charset=utf-8';
+
+            this.callback({
+                statusCode: 500,
+                headers: {},
+                body: error
+            });
+
+        }
+
 
         end() {
             this.callback({
