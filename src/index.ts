@@ -1,4 +1,5 @@
 // polyfills
+/*
 import 'core-js/es6/symbol';
 import 'core-js/es6/object';
 import 'core-js/es6/function';
@@ -15,10 +16,9 @@ import 'core-js/es6/set';
 import 'core-js/es6/reflect';
 import 'core-js/es6/promise';
 import 'core-js/es7/reflect';
+*/
 
 export * from './service';
-export * from './type';
-export {http} from './http';
-export {storage} from './storage';
-
 export {mainEntry} from './main';
+export {http} from './http';
+//export {storage} from './storage';

@@ -1,5 +1,9 @@
 "use strict";
 var http_1 = require('./http');
+/*
+    ENTRY POINT
+*/
+//export declare type Calback = (Error, {}) => void;
 function mainEntry(event, context, callback) {
     if ('httpMethod' in event) {
         try {
@@ -11,6 +15,11 @@ function mainEntry(event, context, callback) {
             var gateway = http_1.http.allGateways[gatewayName];
             if (gateway === undefined)
                 throw new Error("Undefined gateway '" + gatewayName + "'");
+            /*
+                        gateway.dispatch(event, (response: http.ResponseData) =>
+                            done(null, response)
+                        );
+            */
             gateway.dispatch(event)
                 .then(function (v) { return callback(null, v); })
                 .catch(function (e) { return callback(null, {

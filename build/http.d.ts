@@ -1,4 +1,3 @@
-/// <reference types="core-js" />
 import { HandlerDescriptor, HandlerDescriptorParams } from './service';
 export declare namespace http {
     const allGateways: {
@@ -22,9 +21,9 @@ export declare namespace http {
             [headerName: string]: string;
         };
         stageVariables: {
-            gatewayName: string;
+            [headerName: string]: string;
         };
-        requestContext: {
+        requestContext?: {
             accountId: string;
             resourceId: string;
             stage: string;
@@ -102,6 +101,7 @@ export declare namespace http {
         status(statusCode: number): this;
         send(body: string): void;
         json(body: any): void;
+        error(error: any): void;
         end(): void;
     }
 }

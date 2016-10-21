@@ -18,6 +18,9 @@ var http;
     }(service_1.HandlerDescriptor));
     http.Endpoint = Endpoint;
     ;
+    /*
+        Gateway
+     */
     function endpointDecorator(gateway, httpMethod, url) {
         return function (servicePrototype, handlerName, descriptor) {
             if (typeof servicePrototype == 'function')
@@ -77,6 +80,7 @@ var http;
         Gateway.prototype.DELETE = function (url) {
             return endpointDecorator(this, 'DELETE', url);
         };
+        //dispatch(requestData: RequestData, responseCallback: (ResponseData) => void) {
         Gateway.prototype.dispatch = function (requestData) {
             var httpMethods = this.endpoints[requestData.resource];
             if (httpMethods === undefined)
@@ -88,6 +92,7 @@ var http;
                     throw new Error("Invalid method '" + requestData.httpMethod + "'");
             }
             var service = endpoint.serviceDescriptor.instance;
+            // apply middleware
             return new Promise(function (resolve) {
                 var request = new Request(requestData);
                 var response = new Response(request, resolve);
@@ -154,6 +159,15 @@ var http;
                 statusCode: this.statusCode || 200,
                 headers: this.headers,
                 body: body
+            });
+        };
+        Response.prototype.error = function (error) {
+            if (this.headers['Content-Type'] === undefined)
+                this.headers['Content-Type'] = 'application/json; charset=utf-8';
+            this.callback({
+                statusCode: 500,
+                headers: {},
+                body: error
             });
         };
         Response.prototype.end = function () {

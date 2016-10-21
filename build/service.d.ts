@@ -1,4 +1,3 @@
-/// <reference types="core-js" />
 export interface ServiceClass extends Function {
     new (): Service;
 }

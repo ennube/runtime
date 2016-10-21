@@ -40,8 +40,18 @@ function service(settings) {
 }
 exports.service = service;
 var HandlerDescriptor = (function () {
+    /*
+        static get(serviceClass: ServiceClass, handlerName:string) {
+            let serviceDescriptor = ServiceDescriptor.get(serviceClass);
+    
+            let handler = serviceDescriptor.handlers[handlerName];
+            if( handler === undefined )
+                handler = new this(serviceDescriptor, handlerName);
+        }
+    */
     function HandlerDescriptor(params) {
         Object.assign(this, params);
+        // checks name collision..
         this.serviceDescriptor.handlers[this.name] = this;
     }
     return HandlerDescriptor;
@@ -49,6 +59,8 @@ var HandlerDescriptor = (function () {
 exports.HandlerDescriptor = HandlerDescriptor;
 var Service = (function () {
     function Service() {
+        // TODO: check instance name collision..
+        //allServiceInstances[typeOf(this).name] = this;
     }
     Service.get = function (serviceClass) {
         var instance = exports.allServiceInstances[serviceClass.name];
@@ -60,4 +72,25 @@ var Service = (function () {
     return Service;
 }());
 exports.Service = Service;
+/*
+export function makeHandlerDescriptorDecorator( callback: (HandlerDescriptor) => any ) {
+
+    return (servicePrototype: any,
+            handlerName: string,
+            descriptor: PropertyDescriptor) => {
+
+        if(typeof servicePrototype == 'function')
+            throw new Error(`${servicePrototype.name}.${handlerName}():` +
+                            `static handlers are not permitted`);
+
+        let serviceClass = servicePrototype.constructor;
+
+        let handler = HandlerDescriptor.get(serviceClass, handlerName);
+
+        return callback(handler);
+
+
+    };
+}
+*/
 //# sourceMappingURL=service.js.map

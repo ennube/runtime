@@ -1,28 +1,24 @@
 {
     "compilerOptions": {
-        "target": "es5",
         "module": "commonjs",
-        "moduleResolution": "node",
-        "isolatedModules": false,
-        "jsx": "react",
-        "experimentalDecorators": true,
-        "emitDecoratorMetadata": false,
-        "declaration": true,
+        "target": "es5",
+        "lib": ["es6"],
         "noImplicitAny": false,
-        "noImplicitUseStrict": false,
-        "removeComments": true,
-        "noLib": false,
-        "preserveConstEnums": true,
-        "suppressImplicitAnyIndexErrors": true,
         "sourceMap": true,
-        "outDir": "build/",
-        "rootDir": "src/"
+        "experimentalDecorators": true,
+        "emitDecoratorMetadata": true,
+        "declaration": true,
+        "rootDir": "src/",
+        "outDir": "build/"
     },
+    "exclude": [
+      "node_modules"
+    ],
     "typeRoots": [
-      "./node_modules/@types"
+        "node_modules/@types"
     ],
     "types": [
-        "node"
+        "jasmine"
     ],
     "compileOnSave": false,
     "buildOnSave": false

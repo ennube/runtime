@@ -1,5 +1,3 @@
-import {typeOf} from './type';
-
 export interface ServiceClass extends Function {
     new(): Service;
 }

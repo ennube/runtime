@@ -32,10 +32,11 @@ export namespace http {
         };
 
         stageVariables: {
-            gatewayName: string;
+            [headerName:string]: string
+//            gatewayName: string;
         };
 
-        requestContext: {
+        requestContext?: {
             accountId: string;
             resourceId: string;
             stage: string;
