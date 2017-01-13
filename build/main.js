@@ -1,18 +1,19 @@
 "use strict";
-var http_1 = require('./http');
+var http = require("./http");
 /*
     ENTRY POINT
 */
 //export declare type Calback = (Error, {}) => void;
 function mainEntry(event, context, callback) {
     if ('httpMethod' in event) {
+        // http.dispath
         try {
             var gatewayName = event.stageVariables ?
                 event.stageVariables.gatewayName :
-                http_1.http.Gateway.default();
+                http.Gateway.default();
             if (gatewayName === undefined)
                 throw new Error("Undefined gateway");
-            var gateway = http_1.http.allGateways[gatewayName];
+            var gateway = http.allGateways[gatewayName];
             if (gateway === undefined)
                 throw new Error("Undefined gateway '" + gatewayName + "'");
             /*

@@ -1,4 +1,4 @@
-import {http} from './http';
+import * as http from './http';
 import * as service from './service';
 
 /*
@@ -10,6 +10,7 @@ import * as service from './service';
 export function mainEntry(event, context, callback: (Error, {}) => void ) {
 
     if('httpMethod' in event) {
+        // http.dispath
         try {
             let gatewayName = event.stageVariables?
                 event.stageVariables.gatewayName:
